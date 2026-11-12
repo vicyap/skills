@@ -1,7 +1,0 @@
-/_build/
-/deps/
-/dev-data/
-erl_crash.dump
-*.db
-*.db-*
-release.tar.gz
