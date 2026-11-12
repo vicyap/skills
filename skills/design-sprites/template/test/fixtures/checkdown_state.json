@@ -1,0 +1,333 @@
+{
+  "design": {
+    "version": 1,
+    "updated_at": "2026-11-09T14:05:16+00:00",
+    "sections": [
+      {
+        "heading": "What this is",
+        "status": "decided",
+        "body": "The editor owns the editorial calls; an automation operates the system. Each essay enters a tiered ladder of publications, tier 1 down to tier 3, and moves down on its own when a publication's window closes in silence. A piece no tier takes lands on the company journal plus an email send.\nThe whole ladder lives on one persistent checklist page that the editor can refer to at any time. Direction, set 2026-11-09: the checklist is the persistent home of the check-down, and the automation handles the sending and the progression. This page is the full design; the Decisions tab holds the questions that are still yours to answer."
+      },
+      {
+        "heading": "1 · The checklist — one source of truth",
+        "status": "decided",
+        "body": "One persistent checklist page, \"Essay check-down\", in three sections:\n- **The board** — one block per essay: title, byline (the columnist or the editor), link to the final text, current state, current publication and tier, editor name, sent date, window-end date, next action and its date, and a one-line history. This replaces the per-piece status log that never existed.\n- **The publication book** — one block per publication: tier, editors and email, submission method (email vs web form), exclusivity terms, AI-authorship policy, normal response window, notes. Example already earned: one regional daily's essay desk is web-form only, and its tips@ address bounces.\n- **Rules of the road** — the ratified ladder rules printed on the checklist itself, so the editor reads the same rules the automation executes.\nThe automation updates the checklist on every state change and posts the change in the team channel **with the checklist link** — the editor's standing ask. They never have to ask where a piece is.\nTwo hard constraints the board enforces:\n- One live submission per piece (essay exclusivity).\n- One live piece per publication at a time — never pitch a national daily a second columnist piece while one is already sitting there."
+      },
+      {
+        "heading": "2 · The two send paths — the missing functionality",
+        "body": "Pitches and bulk sends are different kinds of email, and they need different pipes.\n### A · Pitch path (one-to-one, to editors)\nSends **as the editor** — a pitch from an automation address kills credibility, and replies must thread back to the editor. Route: the workspace identity-email gateway (send as the editor's address). Status today: sending is **off**. The platform engineer's six gateway setup steps were never completed, and some of them need you or the ops lead. Until it lands, the automation drafts and posts an approval card and the editor sends. Once it lands, the automation sends directly under the approval model in section 4.\n### B · Blast path (the fallback rung, and the newsletter)\nSends from the journal's mail domain via the bulk mail provider, on the Nov 5 design: a sending-only API key restricted to the journal domain, provisioned to the automation's VM through the existing team password vault item, plus a **send-email CLI** on the automation's VM that encodes the runbook — audience pull, 48-hour exclusion against the send log, suppression check, List-Unsubscribe header, batched send, send IDs returned so the automation can report opens and clicks itself. This same path carries the Nov 19 launch email, to about 2,140 subscribers."
+      },
+      {
+        "heading": "3 · How a piece moves — the state machine the automation runs",
+        "body": "States per essay: **drafting → approved → live at tier N (window ends on a date) → placed, or next tier, or fallback → published on the journal + blast sent → done.**\n- Window expiry means silence, and silence advances the piece to the next tier automatically. No withdrawal emails, ever — the editor's rule.\n- Windows come from the publication book; the defaults come from the rules in section 5. News-pegged pieces move faster, 24 hours per top swing; a piece still unplaced by day 6 goes to the fallback.\n- Before every send, the automation checks the publication's current AI-authorship policy and submission method in the publication book, and refreshes them if stale. Where AI text is barred, the automation briefs instead of drafting.\n- Web-form publications cannot ride the email path. They become a manual task posted for the editor, with the form link and the exact text to paste.\n- An editor's reply stops the clock. Replies land in the editor's inbox, which the automation cannot read — how they reach the automation is Round 1, question 4.\n- Address hygiene: any bounce marks the publication-book entry bad, and the automation finds the current route before the next send. That rule exists because of one regional daily's bouncing tips@ address."
+      },
+      {
+        "heading": "4 · Approval model",
+        "body": "- The editor approves each essay **once**: final text plus ladder order, recorded on the checklist. The columnist approves their own bylined text once — already the pattern. Claims in regulated topics keep the existing columnist gate.\n- After that one approval, sends and advances are **notify-and-proceed**: the automation posts each send and each advance in the team channel with the checklist link. No per-send approval cards.\n- The editor can pause or kill any essay with a word in its thread.\n- Any edit to an approved text voids the approval and re-queues the piece for the editor."
+      },
+      {
+        "heading": "5 · Rules baked in — pending your ratification",
+        "body": "Two rules from the pending candidate pile (automation-monitor) get baked into the automation. Ratifying them is Round 1, question 1.\n- **Public first (2026-10-27):** consumer publications before trade, at the level the piece deserves; never let the clock lower the ladder. Move on only when the publication's own window ends or an editor releases it; never invent an \"exclusive until\" deadline.\n- **Pitch-to-decay (2026-10-29):** two swings at the top, then the middle; news-pegged pieces get 24 hours per top swing, with the deadline stated politely; still unplaced by day 6, the piece runs on the company journal plus a professional-network post and email.\nThe Oct 27 candidate's self-set clock parts are superseded by the Oct 29 decay rule and drop out."
+      },
+      {
+        "heading": "6 · Deliberately out of v1",
+        "body": "- **Rapid response / quote requests and the columnist quote bank** share the pitch send path once it exists, but they are a separate inbound lane. V2, on the same checklist as a second board if it earns it.\n- **CMS-lite:** the fallback rung's journal publish still goes by PR until the CMS-lite pipe exists. The check-down does not wait for it."
+      },
+      {
+        "heading": "7 · Measurement",
+        "body": "The automation keeps a running tally on the checklist footer: sends, replies, and placements by publication and tier. Monthly, that data re-orders the tiers — publications that answer move up."
+      },
+      {
+        "heading": "8 · Build order",
+        "body": "- **1. Checklist live** (automation, now): the board seeded with the 4 circulating pieces at their true current states; the publication book seeded from this week's sends.\n- **2. Progression automation**: window timers, advance-on-silence, checklist upkeep, thread notifications.\n- **3. Blast path** (send-email CLI plus scoped key): needed by Nov 19 regardless, for the launch email.\n- **4. Pitch path** (identity gateway): unblocks fully automated pitching; the approval-card flow covers the gap until then."
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "n": 1,
+      "status": "submitted",
+      "submitted_at": "2026-11-09T18:53:42+00:00",
+      "anything_else": "",
+      "questions": [
+        {
+          "id": "ladder_rules",
+          "prompt": "Ratify the ladder rules?",
+          "context": "The two rules in section 5 of the design: public-first (consumer publications before trade, at the level the piece deserves, move on only at the publication's own window) and pitch-to-decay (two swings at the top, 24 hours per top swing for news-pegged pieces, unplaced by day 6 goes to journal + email). Ratifying bakes them into the automation.",
+          "options": [
+            {
+              "value": "ratify",
+              "label": "Ratify as written",
+              "detail": ""
+            },
+            {
+              "value": "ratify_with_changes",
+              "label": "Ratify with changes",
+              "detail": "Say what changes in the comment."
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": {
+            "choice": "ratify",
+            "choice_label": "Ratify as written",
+            "other_text": "",
+            "comment": "these rules should be modifiable and the editor will likely have suggestions on how to change them"
+          }
+        },
+        {
+          "id": "cli_builder",
+          "prompt": "Who builds the send-email CLI?",
+          "context": "The bulk-mail blast path: a sending-only key for the journal domain on the automation's VM, plus a CLI that does audience pull, 48-hour exclusion, suppression check, List-Unsubscribe, batched send, and returns send IDs.",
+          "options": [
+            {
+              "value": "automation_builds",
+              "label": "The automation builds it; the platform engineer reviews the PR",
+              "detail": "Fastest; it is the automation's own tool."
+            },
+            {
+              "value": "platform_builds",
+              "label": "The platform engineer builds it",
+              "detail": "Queues behind the platform backlog."
+            },
+            {
+              "value": "assistant_builds",
+              "label": "The assistant builds it; the automation owns it after",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": {
+            "choice": "assistant_builds",
+            "choice_label": "The assistant builds it; the automation owns it after",
+            "other_text": "",
+            "comment": "remember, all shared tools are equally accessible to the team. the automation should not be the only one capable of sending emails"
+          }
+        },
+        {
+          "id": "pitch_path_timing",
+          "prompt": "Pitch path: when do we finish the workspace gateway so the automation can send as the editor?",
+          "context": "Sending is off until the platform engineer's six gateway setup steps are done; some steps need you or the ops lead. Until then, pitches run on approval cards and the editor sends.",
+          "options": [
+            {
+              "value": "now",
+              "label": "Push the gateway steps now",
+              "detail": ""
+            },
+            {
+              "value": "after_launch",
+              "label": "After the Nov 19 launch",
+              "detail": ""
+            },
+            {
+              "value": "cards_indefinitely",
+              "label": "Stay on approval cards (the editor sends) indefinitely",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": {
+            "choice": "now",
+            "choice_label": "Push the gateway steps now",
+            "other_text": "",
+            "comment": "ASAP"
+          }
+        },
+        {
+          "id": "reply_intake",
+          "prompt": "How do editor replies reach the automation?",
+          "context": "Replies land in the editor's inbox, which the automation cannot read. A reply stops the check-down clock, so the automation needs a reliable way to learn about one.",
+          "options": [
+            {
+              "value": "thread_words",
+              "label": "The editor posts one-word updates in the article thread",
+              "detail": "replied / placed / passed — the thread is ground truth over the automation's timers."
+            },
+            {
+              "value": "auto_forward",
+              "label": "Auto-forward editor replies to a mailbox the automation can read",
+              "detail": ""
+            },
+            {
+              "value": "both",
+              "label": "Both",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": {
+            "choice": "auto_forward",
+            "choice_label": "Auto-forward editor replies to a mailbox the automation can read",
+            "other_text": "",
+            "comment": "this is the most ideal, I want as few touchpoints for the editor as possible. any manual touchpoint is an opportunity for error"
+          }
+        },
+        {
+          "id": "approval_model",
+          "prompt": "Approval model for pitch sends?",
+          "context": "The design's default is approve-once: the editor approves the text and ladder order per essay, then sends run notify-and-proceed.",
+          "options": [
+            {
+              "value": "approve_once",
+              "label": "Approve once per essay (text + ladder), then notify-and-proceed",
+              "detail": ""
+            },
+            {
+              "value": "tier1_approval",
+              "label": "Per-send approval for tier 1, autonomous below tier 1",
+              "detail": ""
+            },
+            {
+              "value": "every_send",
+              "label": "Approval card for every send",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": {
+            "choice": "approve_once",
+            "choice_label": "Approve once per essay (text + ladder), then notify-and-proceed",
+            "other_text": "",
+            "comment": ""
+          }
+        },
+        {
+          "id": "columnist_pieces",
+          "prompt": "The columnist's bylined pieces: how much does the columnist approve?",
+          "context": "The columnist already approves their own text once. The open part is whether moving a piece to a new publication needs their sign-off each time.",
+          "options": [
+            {
+              "value": "text_once",
+              "label": "The columnist approves the text once; publication moves are the automation's",
+              "detail": ""
+            },
+            {
+              "value": "each_move",
+              "label": "The columnist approves each new publication move for their pieces",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": {
+            "choice": "other",
+            "choice_label": "Other (specify)",
+            "other_text": "don't enforce the columnist as a reviewer, that's the editor's job",
+            "comment": ""
+          }
+        },
+        {
+          "id": "blast_first_job",
+          "prompt": "What is the blast path's first job?",
+          "context": "The blast path is build order step 3 either way. The question is whether the Nov 19 launch email (about 2,140 subscribers) rides it, which makes the launch the CLI's deadline.",
+          "options": [
+            {
+              "value": "launch_email",
+              "label": "The Nov 19 launch email rides it (CLI deadline = launch)",
+              "detail": ""
+            },
+            {
+              "value": "fallback_only",
+              "label": "Fallback sends only; launch email sent another way",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": {
+            "choice": "",
+            "choice_label": "",
+            "other_text": "",
+            "comment": "what is the blast path? I don't know how to answer this question"
+          }
+        },
+        {
+          "id": "checklist_owner",
+          "prompt": "Who creates and owns the check-down checklist?",
+          "context": "One persistent checklist page: the board, the publication book, and the rules. The automation updates it on every state change either way.",
+          "options": [
+            {
+              "value": "automation_owns",
+              "label": "The automation creates and owns it; the editor can edit",
+              "detail": ""
+            },
+            {
+              "value": "assistant_creates",
+              "label": "The assistant creates it; the automation maintains it",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": {
+            "choice": "automation_owns",
+            "choice_label": "The automation creates and owns it; the editor can edit",
+            "other_text": "",
+            "comment": ""
+          }
+        },
+        {
+          "id": "blast_audience",
+          "prompt": "Fallback blast: who receives the journal + email rung?",
+          "context": "When a piece exhausts the ladder it publishes on the journal and goes out as an email blast. Which list gets it?",
+          "options": [
+            {
+              "value": "subscribers",
+              "label": "The subscriber list",
+              "detail": ""
+            },
+            {
+              "value": "digest_list",
+              "label": "The weekly digest list",
+              "detail": ""
+            },
+            {
+              "value": "per_piece",
+              "label": "Depends on the piece (the automation proposes, the editor approves)",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": {
+            "choice": "per_piece",
+            "choice_label": "Depends on the piece (the automation proposes, the editor approves)",
+            "other_text": "",
+            "comment": ""
+          }
+        }
+      ]
+    }
+  ]
+}

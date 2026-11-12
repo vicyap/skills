@@ -1,0 +1,287 @@
+{
+  "design": {
+    "version": 1,
+    "updated_at": "2026-11-11T22:52:22+00:00",
+    "sections": [
+      {
+        "heading": "What this is",
+        "status": "decided",
+        "body": "The ops lead's ask (Nov 11): an alert when a sensor reading comes back out of range.\nDirection: reading notifications are basically missing today; do a quick fix now and revisit when the new telemetry provider (Northbeam Telemetry, replacing FieldKit) is onboarded.\n- Alerts must stay visible until someone handles them — in the team chat, in /ops, or both.\n- Not email; email is too easy to miss.\n- Following up with the site contact is operations work.\n- A reading is engineering work only when it is critical and the on-call engineer needs to call the site.\nThis page is the full design; the Decisions tab holds the questions that are still yours to answer."
+      },
+      {
+        "heading": "Where things stand",
+        "body": "Readings arrive and open a review task for the on-call engineer, but nothing reaches anyone in a way they will see.\nOut-of-range detection barely exists: of 23 readings in the last 30 days, only 6 were read into values with high/low flags, and none of those 6 came out clean (parsed or marked ambiguous). So \"alert when out of range\" first needs readings read into values.\nThe surfaces named in the threads: the readings page at https://ops.example.com/internal/readings and the per-site reading task view under /internal/sites/.../readings/..."
+      },
+      {
+        "heading": "Proposed quick fix",
+        "body": "- Post each reading in its batch's existing chat thread when it arrives, and @-mention the on-call engineer when a value is flagged.\n- Add a \"Reading in, not yet reviewed\" column and an out-of-range badge to /ops/readings so the tab works as a queue.\n- Open an ops task to notify the site contact once the engineer closes the review.\n- Skipped deliberately: email alerts, and anything that holds a reading back from the site contact while waiting on review."
+      },
+      {
+        "heading": "What this round decides",
+        "body": "The proposed fix rests on two things only the decider can settle:\n- **(1) The domain rule** — today every reading opens a task only the on-call engineer can close; splitting follow-up to ops, or making readings engineering work only when critical, edits that rule.\n- **(2) How far the quick fix goes on reading results into values**, given only 6 of 23 are parsed today.\nThe remaining questions pin down where alerts live, who gets mentioned, when the ops task opens, what critical means in practice, and who builds it. Provider onboarding continues on its own track; nothing here waits for it."
+      }
+    ]
+  },
+  "rounds": [
+    {
+      "n": 1,
+      "status": "open",
+      "submitted_at": null,
+      "anything_else": null,
+      "questions": [
+        {
+          "id": "domain_rule",
+          "prompt": "How do we split engineering review from site follow-up?",
+          "context": "Today's domain rule: every sensor reading opens a task only the on-call engineer can close, and the support team chases the site until the reading reaches them. The direction in the thread: follow-up is ops work; readings are engineering work only when critical. The telemetry lead's read: those fit if the work splits in two.",
+          "options": [
+            {
+              "value": "split_review_ops",
+              "label": "Split it: the engineer reviews every reading (engineering task); ops owns notifying the site (separate ops task)",
+              "detail": "Only the follow-up half of the rule changes."
+            },
+            {
+              "value": "critical_only_review",
+              "label": "Review only when critical: only critical readings open an engineer task; everything else goes to the /ops queue and ops",
+              "detail": ""
+            },
+            {
+              "value": "keep_all_engineering",
+              "label": "Keep the current rule: the engineer owns review and site follow-up end to end",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": null
+        },
+        {
+          "id": "alert_trigger",
+          "prompt": "What triggers an alert?",
+          "context": "Only 6 of the last 23 readings were read into values with high/low flags. A trigger that only fires on flags will miss every unparsed reading.",
+          "options": [
+            {
+              "value": "flagged_and_unparsed",
+              "label": "Flagged abnormal or critical, OR the reading could not be read into values",
+              "detail": "Nothing passes silently; unparsed reads as needs-attention."
+            },
+            {
+              "value": "flagged_only",
+              "label": "Only parsed high/low/critical flags",
+              "detail": ""
+            },
+            {
+              "value": "every_result",
+              "label": "Every reading arrival alerts; flagged ones are badged",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": null
+        },
+        {
+          "id": "parsing_scope",
+          "prompt": "Does the quick fix include reading every result into values?",
+          "context": "Out-of-range detection needs values with flags. Today that exists for about a quarter of readings, and none of those read clean.",
+          "options": [
+            {
+              "value": "parse_all_now",
+              "label": "Yes: parse every incoming reading into values with flags, as part of the quick fix",
+              "detail": ""
+            },
+            {
+              "value": "existing_plus_attention",
+              "label": "Not yet: use existing flags; readings that cannot be read surface as needs-review until a parser lands",
+              "detail": ""
+            },
+            {
+              "value": "defer_parsing",
+              "label": "No: quick fix alerts on arrival only; parsing is a separate later project",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": null
+        },
+        {
+          "id": "alert_home",
+          "prompt": "Where do the persistent alerts live?",
+          "context": "Constraint: alerts stay visible until handled, in the team chat, /ops, or both. Not email.",
+          "options": [
+            {
+              "value": "both",
+              "label": "Both: chat thread post plus the /ops/readings queue and badge",
+              "detail": ""
+            },
+            {
+              "value": "chat_first",
+              "label": "Chat first; /ops queue in a follow-up",
+              "detail": ""
+            },
+            {
+              "value": "internal_first",
+              "label": "/ops first; chat posts in a follow-up",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": null
+        },
+        {
+          "id": "slack_mentions",
+          "prompt": "In the batch's chat thread, who gets @-mentioned?",
+          "context": "Every reading batch already has its own thread in the team chat, and each reading would post there when it lands. The question is who gets pulled in, and when.",
+          "options": [
+            {
+              "value": "oncall_on_flag",
+              "label": "Post every reading; @on-call only when flagged, critical, or unreadable",
+              "detail": ""
+            },
+            {
+              "value": "oncall_every",
+              "label": "Post every reading; @on-call on every one",
+              "detail": ""
+            },
+            {
+              "value": "ops_and_oncall",
+              "label": "Post every reading; @ops when flagged, @on-call only when critical",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": null
+        },
+        {
+          "id": "internal_queue",
+          "prompt": "On /ops/readings, what clears 'Reading in, not yet reviewed'?",
+          "context": "The proposal adds that column plus an out-of-range badge so the readings tab works as a queue. A queue only works if everyone agrees what done looks like.",
+          "options": [
+            {
+              "value": "two_stage",
+              "label": "Two stages: awaiting engineer review, then awaiting site follow-up, then done",
+              "detail": "Each stage clears when its owner finishes."
+            },
+            {
+              "value": "engineer_close_clears",
+              "label": "The engineer closing the review clears it; the badge stays on the record",
+              "detail": ""
+            },
+            {
+              "value": "ops_close_clears",
+              "label": "Ops confirming the site was told clears it",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": null
+        },
+        {
+          "id": "ops_task_timing",
+          "prompt": "When does the ops 'notify the site' task open?",
+          "context": "The proposal was to open it once the engineer closes the review, and also to skip anything that holds a reading back from the site while waiting on review. Those two pull in opposite directions for normal readings.",
+          "options": [
+            {
+              "value": "after_review_except_normal",
+              "label": "Normal readings: ops task at arrival. Abnormal or critical: after the engineer's review",
+              "detail": ""
+            },
+            {
+              "value": "after_engineer_review",
+              "label": "Always after the engineer closes the review (the proposal as written)",
+              "detail": ""
+            },
+            {
+              "value": "at_arrival",
+              "label": "Always at reading arrival, in parallel with the engineer's review",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": null
+        },
+        {
+          "id": "critical_path",
+          "prompt": "What happens on a critical reading?",
+          "context": "The rule: a reading is engineering work when it is critical and the on-call engineer needs to call the site. Open: how loud the alert is, and whether ops is tasked at the same time so the site gets reached even if the engineer is unavailable.",
+          "options": [
+            {
+              "value": "duty_plus_ops",
+              "label": "Critical flag: @on-call in the batch thread plus a top-level post in #ops-alerts, and an ops task opens at the same time",
+              "detail": ""
+            },
+            {
+              "value": "duty_only",
+              "label": "Critical flag: @on-call in the batch thread plus a top-level post in #ops-alerts; the engineer notifies the site",
+              "detail": ""
+            },
+            {
+              "value": "flag_for_now",
+              "label": "Use the provider's critical flag as-is for now; thresholds and escalation get defined with the on-call team in Round 2",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": null
+        },
+        {
+          "id": "build_owner",
+          "prompt": "Who builds the quick fix?",
+          "context": "The telemetry lead specced it but noted readings are not in their area and whoever builds it should own it. The instruction for this work: coordinate in the #ops thread.",
+          "options": [
+            {
+              "value": "lead_builds",
+              "label": "The telemetry lead builds it; the assistant supplies the decisions from this sprite and verifies",
+              "detail": ""
+            },
+            {
+              "value": "split_build",
+              "label": "Split: the telemetry lead takes chat posts and tasks, the platform engineer takes the /ops/readings changes",
+              "detail": ""
+            },
+            {
+              "value": "platform_builds",
+              "label": "The platform engineer builds it end to end",
+              "detail": ""
+            },
+            {
+              "value": "other",
+              "label": "Other (specify)",
+              "detail": "Say it your way in the box below."
+            }
+          ],
+          "answer": null
+        }
+      ]
+    }
+  ]
+}
